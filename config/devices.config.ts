@@ -1,8 +1,8 @@
-import { devices, type PlaywrightTestOptions, type PlaywrightWorkerOptions } from '@playwright/test';
+import { devices } from '@playwright/test';
 
 export interface DeviceProfile {
   name: string;
-  use: PlaywrightTestOptions & PlaywrightWorkerOptions;
+  use: Record<string, unknown>;
   tags?: string[];
 }
 
