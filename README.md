@@ -149,9 +149,13 @@ docker compose up allure-report
 |-----|-------|-------------|
 | `@smoke` | 12 | Critical path validation |
 | `@regression` | 45+ | Detailed functional tests |
-| `@e2e` | 10+ | Full user journey flows |
+| `@e2e` | 12 | Full user journey flows |
 | `@visual` | 10+ | Screenshot comparison |
-| `@api` | 15+ | REST API validation |
+| `@api` | 18 | REST API validation |
+| `@a11y` | 13 | WCAG 2.0 A/AA accessibility |
+| `@performance` | 13 | Core Web Vitals & load times |
+| `@security` | 15 | XSS, SQLi, headers, cookies |
+| `@mobile` | 18 | Gestures, orientation, responsive |
 
 ## Devices Supported
 
@@ -174,6 +178,14 @@ docker compose up allure-report
 - **Data-Driven Testing** - External JSON test data
 - **Factory Pattern** - Dynamic test data generation with Faker.js
 - **Helper Pattern** - Utility classes for API, network, reporting
+
+## Author
+
+**Enes Okur**
+
+- GitHub: [@okurenes](https://github.com/okurenes)
+- LinkedIn: [enes-okur-133871136](https://www.linkedin.com/in/enes-okur-133871136)
+- Email: okurenes.official@gmail.com
 
 ## License
 

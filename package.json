@@ -2,7 +2,11 @@
   "name": "mobile-automation-test-framework",
   "version": "1.0.0",
   "description": "Senior QA-level mobile web automation test framework with Playwright",
-  "author": "QA Team",
+  "author": {
+    "name": "Enes Okur",
+    "email": "okurenes.official@gmail.com",
+    "url": "https://github.com/okurenes"
+  },
   "license": "MIT",
   "scripts": {
     "test": "npx playwright test",
