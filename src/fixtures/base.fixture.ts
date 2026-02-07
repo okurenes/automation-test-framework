@@ -1,4 +1,4 @@
-import { test as base, type Page, type BrowserContext } from '@playwright/test';
+import { test as base, type Page } from '@playwright/test';
 import { LoginPage } from '../pages/login.page';
 import { ProductsPage } from '../pages/products.page';
 import { ProductDetailPage } from '../pages/product-detail.page';
@@ -8,6 +8,10 @@ import { CheckoutCompletePage } from '../pages/checkout-complete.page';
 import { ApiHelper } from '../utils/api-helper';
 import { NetworkHelper } from '../utils/network-helper';
 import { AllureHelper } from '../utils/allure-helper';
+import { AccessibilityHelper } from '../utils/accessibility-helper';
+import { PerformanceHelper } from '../utils/performance-helper';
+import { SecurityHelper } from '../utils/security-helper';
+import { MobileHelper } from '../utils/mobile-helper';
 import { DEFAULT_USER, type TestUser, TEST_USERS } from '../../config/test-users.config';
 
 export interface PageObjects {
@@ -23,6 +27,10 @@ export interface TestFixtures extends PageObjects {
   apiHelper: ApiHelper;
   networkHelper: NetworkHelper;
   allureHelper: AllureHelper;
+  accessibilityHelper: AccessibilityHelper;
+  performanceHelper: PerformanceHelper;
+  securityHelper: SecurityHelper;
+  mobileHelper: MobileHelper;
   authenticatedPage: Page;
   testUser: TestUser;
 }
@@ -64,13 +72,27 @@ export const test = base.extend<TestFixtures>({
   },
 
   networkHelper: async ({ page }, use) => {
-    const helper = new NetworkHelper(page);
-    await use(helper);
+    await use(new NetworkHelper(page));
   },
 
   allureHelper: async ({}, use, testInfo) => {
-    const helper = new AllureHelper(testInfo);
-    await use(helper);
+    await use(new AllureHelper(testInfo));
+  },
+
+  accessibilityHelper: async ({ page }, use) => {
+    await use(new AccessibilityHelper(page));
+  },
+
+  performanceHelper: async ({ page }, use) => {
+    await use(new PerformanceHelper(page));
+  },
+
+  securityHelper: async ({ page }, use) => {
+    await use(new SecurityHelper(page));
+  },
+
+  mobileHelper: async ({ page }, use) => {
+    await use(new MobileHelper(page));
   },
 
   // ─── Test User ──────────────────────────────────────────────

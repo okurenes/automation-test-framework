@@ -15,7 +15,7 @@ on:
           - staging
           - prod
       test_tags:
-        description: 'Test tags to run (e.g., @smoke, @regression, @e2e, @visual, @api)'
+        description: 'Test tags to run (e.g., @smoke, @regression, @e2e, @visual, @api, @a11y, @performance, @security, @mobile)'
         required: false
         default: ''
         type: string
@@ -159,9 +159,58 @@ jobs:
           path: reports/
           retention-days: 30
 
+  a11y-security-tests:
+    name: A11y & Security Tests (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ['iPhone 14', 'Pixel 7']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Run accessibility tests
+        run: npx playwright test --grep @a11y --project="${{ matrix.project }}"
+        env:
+          CI: true
+
+      - name: Run security tests
+        run: npx playwright test --grep @security --project="${{ matrix.project }}"
+        env:
+          CI: true
+
+      - name: Run performance tests
+        run: npx playwright test --grep @performance --project="${{ matrix.project }}"
+        env:
+          CI: true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-security-results-${{ matrix.project }}
+          path: reports/
+          retention-days: 30
+
   generate-allure-report:
     name: Generate Allure Report
-    needs: [full-suite, visual-regression, api-tests]
+    needs: [full-suite, visual-regression, api-tests, a11y-security-tests]
     if: always()
     runs-on: ubuntu-latest
 
@@ -203,7 +252,7 @@ jobs:
 
   summary:
     name: Daily Summary
-    needs: [full-suite, visual-regression, api-tests]
+    needs: [full-suite, visual-regression, api-tests, a11y-security-tests]
     if: always()
     runs-on: ubuntu-latest
 
@@ -219,5 +268,6 @@ jobs:
           echo "| Full Suite | ${{ needs.full-suite.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Visual Regression | ${{ needs.visual-regression.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| API Tests | ${{ needs.api-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| A11y & Security | ${{ needs.a11y-security-tests.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Download the Allure report artifact for detailed results." >> $GITHUB_STEP_SUMMARY
