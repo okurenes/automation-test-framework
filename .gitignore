@@ -9,6 +9,8 @@ dist/
 reports/allure-results/
 reports/allure-report/
 reports/playwright-html/
+reports/test-results.json
+allure-results/
 test-results/
 blob-report/
 
