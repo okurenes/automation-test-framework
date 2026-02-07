@@ -1,0 +1,64 @@
+name: Smoke Tests on Push
+
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ['iPhone 14', 'Pixel 7']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Run smoke tests
+        run: npx playwright test --grep @smoke --project="${{ matrix.project }}"
+        env:
+          TEST_ENV: staging
+          CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-results-${{ matrix.project }}
+          path: |
+            reports/playwright-html/
+            reports/allure-results/
+            test-results/
+          retention-days: 7
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-smoke-${{ matrix.project }}
+          path: reports/playwright-html/
+          retention-days: 7

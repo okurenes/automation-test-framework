@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Product Defects",
+    "description": "Tests that failed due to actual product bugs",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*Expected.*toBe.*|.*AssertionError.*"
+  },
+  {
+    "name": "Test Infrastructure Issues",
+    "description": "Tests that failed due to test infrastructure problems",
+    "matchedStatuses": ["broken"],
+    "messageRegex": ".*TimeoutError.*|.*ECONNREFUSED.*|.*ENOTFOUND.*"
+  },
+  {
+    "name": "Element Not Found",
+    "description": "Tests that failed because UI elements were not found",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*locator.*|.*selector.*|.*waiting for.*"
+  },
+  {
+    "name": "Flaky Tests",
+    "description": "Tests that passed on retry",
+    "matchedStatuses": ["passed"],
+    "flaky": true
+  },
+  {
+    "name": "Known Issues",
+    "description": "Tests with known defects that are expected to fail",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*KNOWN_ISSUE.*"
+  }
+]

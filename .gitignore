@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build
+dist/
+
+# Reports
+reports/allure-results/
+reports/allure-report/
+reports/playwright-html/
+test-results/
+blob-report/
+
+# Playwright
+playwright-report/
+playwright/.cache/
+
+# Visual regression baselines (track these, but ignore diffs)
+**/*-snapshots/*-diff.png
+**/*-snapshots/*-actual.png
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+
+# Misc
+*.tgz
+.cache/

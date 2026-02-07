@@ -1,0 +1,125 @@
+{
+  "loginData": {
+    "validUsers": [
+      {
+        "username": "standard_user",
+        "password": "secret_sauce",
+        "description": "Standard user - should login successfully"
+      },
+      {
+        "username": "problem_user",
+        "password": "secret_sauce",
+        "description": "Problem user - should login but with issues"
+      },
+      {
+        "username": "performance_glitch_user",
+        "password": "secret_sauce",
+        "description": "Performance glitch user - slow login"
+      },
+      {
+        "username": "error_user",
+        "password": "secret_sauce",
+        "description": "Error user - should login"
+      },
+      {
+        "username": "visual_user",
+        "password": "secret_sauce",
+        "description": "Visual user - should login"
+      }
+    ],
+    "invalidUsers": [
+      {
+        "username": "",
+        "password": "secret_sauce",
+        "expectedError": "Username is required",
+        "description": "Empty username"
+      },
+      {
+        "username": "standard_user",
+        "password": "",
+        "expectedError": "Password is required",
+        "description": "Empty password"
+      },
+      {
+        "username": "",
+        "password": "",
+        "expectedError": "Username is required",
+        "description": "Both fields empty"
+      },
+      {
+        "username": "invalid_user",
+        "password": "wrong_password",
+        "expectedError": "do not match",
+        "description": "Invalid credentials"
+      },
+      {
+        "username": "locked_out_user",
+        "password": "secret_sauce",
+        "expectedError": "locked out",
+        "description": "Locked out user"
+      }
+    ]
+  },
+  "checkoutData": {
+    "validCheckouts": [
+      {
+        "firstName": "John",
+        "lastName": "Doe",
+        "postalCode": "12345",
+        "description": "Standard US postal code"
+      },
+      {
+        "firstName": "Maria",
+        "lastName": "Garcia",
+        "postalCode": "34000",
+        "description": "Turkish postal code"
+      },
+      {
+        "firstName": "O'Brien",
+        "lastName": "McDonald",
+        "postalCode": "W1A 1AA",
+        "description": "Name with special chars + UK postal code"
+      },
+      {
+        "firstName": "Jean-Pierre",
+        "lastName": "De La Cruz",
+        "postalCode": "75001",
+        "description": "Hyphenated name + French postal code"
+      }
+    ],
+    "invalidCheckouts": [
+      {
+        "firstName": "",
+        "lastName": "Doe",
+        "postalCode": "12345",
+        "expectedError": "First Name is required",
+        "description": "Empty first name"
+      },
+      {
+        "firstName": "John",
+        "lastName": "",
+        "postalCode": "12345",
+        "expectedError": "Last Name is required",
+        "description": "Empty last name"
+      },
+      {
+        "firstName": "John",
+        "lastName": "Doe",
+        "postalCode": "",
+        "expectedError": "Postal Code is required",
+        "description": "Empty postal code"
+      }
+    ]
+  },
+  "products": {
+    "allProducts": [
+      "Sauce Labs Backpack",
+      "Sauce Labs Bike Light",
+      "Sauce Labs Bolt T-Shirt",
+      "Sauce Labs Fleece Jacket",
+      "Sauce Labs Onesie",
+      "Test.allTheThings() T-Shirt (Red)"
+    ],
+    "sortOrders": ["az", "za", "lohi", "hilo"]
+  }
+}

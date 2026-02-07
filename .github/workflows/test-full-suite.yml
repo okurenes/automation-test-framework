@@ -1,0 +1,223 @@
+name: Full Test Suite (Scheduled)
+
+on:
+  schedule:
+    - cron: '0 6 * * 1-5'  # Weekdays at 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      test_tags:
+        description: 'Test tags to run (e.g., @smoke, @regression, @e2e, @visual, @api)'
+        required: false
+        default: ''
+        type: string
+
+env:
+  TEST_ENV: ${{ github.event.inputs.environment || 'staging' }}
+
+jobs:
+  full-suite:
+    name: Full Suite (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ['iPhone 14', 'Pixel 7', 'iPad Pro 11']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Run full test suite
+        run: |
+          GREP_ARG=""
+          if [ -n "${{ github.event.inputs.test_tags }}" ]; then
+            GREP_ARG="--grep ${{ github.event.inputs.test_tags }}"
+          fi
+          npx playwright test $GREP_ARG --project="${{ matrix.project }}" --retries=2
+        env:
+          CI: true
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-full-${{ matrix.project }}
+          path: reports/allure-results/
+          retention-days: 30
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-full-${{ matrix.project }}
+          path: reports/playwright-html/
+          retention-days: 30
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-full-${{ matrix.project }}
+          path: test-results/
+          retention-days: 30
+
+  visual-regression:
+    name: Visual Regression (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ['iPhone 14', 'Pixel 7', 'iPad Pro 11']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Run visual regression tests
+        run: npx playwright test --grep @visual --project="${{ matrix.project }}" --update-snapshots
+        env:
+          CI: true
+
+      - name: Upload visual snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-snapshots-${{ matrix.project }}
+          path: |
+            src/tests/**/*-snapshots/
+            test-results/
+          retention-days: 30
+
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run API tests
+        run: npx playwright test --grep @api --project="iPhone 14"
+        env:
+          CI: true
+
+      - name: Upload API results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-results-full
+          path: reports/
+          retention-days: 30
+
+  generate-allure-report:
+    name: Generate Allure Report
+    needs: [full-suite, visual-regression, api-tests]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all Allure results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-*
+          path: reports/allure-results
+          merge-multiple: true
+
+      - name: Copy Allure categories config
+        run: cp config/allure/categories.json reports/allure-results/ 2>/dev/null || true
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Allure CLI
+        run: |
+          curl -o allure-2.30.0.tgz -OLs https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.30.0/allure-commandline-2.30.0.tgz
+          tar -zxvf allure-2.30.0.tgz
+          echo "$PWD/allure-2.30.0/bin" >> $GITHUB_PATH
+
+      - name: Generate Allure report
+        run: allure generate reports/allure-results -o reports/allure-report --clean
+
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-full
+          path: reports/allure-report/
+          retention-days: 60
+
+  summary:
+    name: Daily Summary
+    needs: [full-suite, visual-regression, api-tests]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## Daily Test Run Summary - $(date +'%Y-%m-%d')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ env.TEST_ENV }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Full Suite | ${{ needs.full-suite.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Visual Regression | ${{ needs.visual-regression.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Tests | ${{ needs.api-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download the Allure report artifact for detailed results." >> $GITHUB_STEP_SUMMARY
